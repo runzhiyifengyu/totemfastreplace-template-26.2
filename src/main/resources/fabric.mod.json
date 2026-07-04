@@ -1,0 +1,31 @@
+{
+	"schemaVersion": 1,
+	"id": "totemfastreplace",
+	"version": "${version}",
+	"name": "TotemFastReplace",
+	"description": "Replace Custom Totem Plush textures in-game.",
+	"authors": [
+		"Gan"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/totemfastreplace/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.gan.TotemFastReplace"
+		],
+		"client": [
+			"com.gan.client.TotemFastReplaceClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
