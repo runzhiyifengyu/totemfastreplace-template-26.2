@@ -1,6 +1,11 @@
 package com.gan.client.resource;
 
+import com.gan.TotemFastReplace;
+
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,12 +23,10 @@ public final class TextureLoader {
     }
 
     public static void load() {
-        TEXTURES.clear();
+        ensureDirectories();
+        ensureBundledResourcePack();
 
-        if (!CONFIG_DIR.exists() && !CONFIG_DIR.mkdirs()) {
-            STATUS = "Cannot create folder: " + CONFIG_DIR.getPath();
-            return;
-        }
+        TEXTURES.clear();
 
         File[] files = CONFIG_DIR.listFiles();
         if (files == null) {
@@ -42,5 +45,32 @@ public final class TextureLoader {
         STATUS = TEXTURES.isEmpty()
                 ? "No PNG found"
                 : "Loaded " + TEXTURES.size() + " PNG(s)";
+    }
+
+    private static void ensureDirectories() {
+        if (!CONFIG_DIR.exists()) {
+            CONFIG_DIR.mkdirs();
+        }
+
+        File parent = RESOURCE_PACK_ZIP.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+    }
+
+    private static void ensureBundledResourcePack() {
+        if (RESOURCE_PACK_ZIP.exists()) {
+            return;
+        }
+
+        try (InputStream in = TotemFastReplace.class.getResourceAsStream("/defaults/custom-totem-plush.zip")) {
+            if (in == null) {
+                STATUS = "Missing bundled resource pack";
+                return;
+            }
+            Files.copy(in, RESOURCE_PACK_ZIP.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            STATUS = "Cannot create zip: " + e.getClass().getSimpleName();
+        }
     }
 }

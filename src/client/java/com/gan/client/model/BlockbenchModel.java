@@ -1,14 +1,34 @@
 package com.gan.client.model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BlockbenchModel {
 
-    private int textureWidth;
-    private int textureHeight;
+    public String credit;
+    public int textureWidth = 64;
+    public int textureHeight = 64;
+    public Map<String, String> textures = new LinkedHashMap<>();
+    public List<BlockbenchCube> cubes = new ArrayList<>();
 
-    private final List<BlockbenchCube> cubes = new ArrayList<>();
+    public BlockbenchModel() {
+    }
+
+    public List<BlockbenchCube> getCubes() {
+        return cubes;
+    }
+
+    public void setCubes(List<BlockbenchCube> cubes) {
+        this.cubes = (cubes == null) ? new ArrayList<>() : cubes;
+    }
+
+    public void addCube(BlockbenchCube cube) {
+        if (cube != null) {
+            this.cubes.add(cube);
+        }
+    }
 
     public int getTextureWidth() {
         return textureWidth;
@@ -26,15 +46,11 @@ public class BlockbenchModel {
         this.textureHeight = textureHeight;
     }
 
-    public List<BlockbenchCube> getCubes() {
-        return cubes;
+    public Map<String, String> getTextures() {
+        return textures;
     }
 
-    public void addCube(BlockbenchCube cube) {
-        cubes.add(cube);
-    }
-
-    public void clear() {
-        cubes.clear();
+    public void setTextures(Map<String, String> textures) {
+        this.textures = (textures == null) ? new LinkedHashMap<>() : textures;
     }
 }

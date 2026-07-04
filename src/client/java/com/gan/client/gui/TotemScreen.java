@@ -1,12 +1,13 @@
 package com.gan.client.gui;
 
-import com.gan.client.resource.PreviewSkin;
+import com.gan.client.render.PreviewRenderer;
 import com.gan.client.resource.TextureLoader;
 import com.gan.client.resource.ZipManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import java.io.File;
@@ -19,11 +20,6 @@ public class TotemScreen extends Screen {
     private int currentPage;
 
     private boolean draggingPreview = false;
-    private double lastMouseX;
-    private double lastMouseY;
-
-    private float previewYaw = 0.0f;
-    private float previewPitch = 0.0f;
 
     public TotemScreen() {
         this(0);
@@ -37,6 +33,7 @@ public class TotemScreen extends Screen {
     @Override
     protected void init() {
         TextureLoader.load();
+        PreviewRenderer.init();
 
         int totalPages = Math.max(1, (TextureLoader.TEXTURES.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         this.currentPage = Math.max(0, Math.min(this.requestedPage, totalPages - 1));
@@ -91,7 +88,7 @@ public class TotemScreen extends Screen {
                     Button.builder(Component.literal(name), btn -> {
                         TextureLoader.SELECTED = file;
                         TextureLoader.STATUS = "Selected: " + name;
-                        PreviewSkin.load(file);
+                        PreviewRenderer.setSkin(file);
                     }).bounds(x, currentY, buttonWidth, buttonHeight).build()
             );
 
@@ -99,61 +96,55 @@ public class TotemScreen extends Screen {
         }
 
         if (TextureLoader.SELECTED != null) {
-            PreviewSkin.load(TextureLoader.SELECTED);
+            PreviewRenderer.setSkin(TextureLoader.SELECTED);
         } else if (!TextureLoader.TEXTURES.isEmpty()) {
             TextureLoader.SELECTED = TextureLoader.TEXTURES.get(start);
-            PreviewSkin.load(TextureLoader.SELECTED);
+            PreviewRenderer.setSkin(TextureLoader.SELECTED);
         }
     }
 
     private void openPage(int page) {
-        Minecraft.getInstance().setScreenAndShow(new TotemScreen(page));
+        Minecraft mc = Minecraft.getInstance();
+        mc.setScreenAndShow(new TotemScreen(page));
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // 只在右侧预览区域按住后才开始旋转
-        if (button == 0) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean handled) {
+        if (event.button() == 0) {
             int previewX = 220;
             int previewY = 82;
             int previewW = 260;
             int previewH = 250;
 
+            double mouseX = event.x();
+            double mouseY = event.y();
+
             if (mouseX >= previewX && mouseX <= previewX + previewW
                     && mouseY >= previewY && mouseY <= previewY + previewH) {
                 this.draggingPreview = true;
-                this.lastMouseX = mouseX;
-                this.lastMouseY = mouseY;
                 return true;
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, handled);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() == 0) {
             this.draggingPreview = false;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (this.draggingPreview && button == 0) {
-            this.previewYaw += (float) deltaX * 0.8f;
-            this.previewPitch -= (float) deltaY * 0.6f;
-
-            if (this.previewPitch > 35.0f) this.previewPitch = 35.0f;
-            if (this.previewPitch < -25.0f) this.previewPitch = -25.0f;
-
-            this.lastMouseX = mouseX;
-            this.lastMouseY = mouseY;
+    public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+        if (this.draggingPreview && event.button() == 0) {
+            PreviewRenderer.mouseDragged(deltaX, deltaY);
             return true;
         }
 
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        return super.mouseDragged(event, deltaX, deltaY);
     }
 
     @Override
@@ -172,8 +163,7 @@ public class TotemScreen extends Screen {
         graphics.text(this.font, selected, 220, 34, 0xFFFFFFFF, true);
         graphics.text(this.font, "Status: " + TextureLoader.STATUS, 220, 50, 0xFFFFFFFF, true);
 
-        // 右侧：纯图腾娃娃预览
-        PreviewDollRenderer.render(graphics, 220, 82, 260, 250, this.previewYaw, this.previewPitch);
+        PreviewRenderer.render(graphics, 220, 82, 260, 250);
     }
 
     @Override
